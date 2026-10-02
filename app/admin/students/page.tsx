@@ -55,6 +55,11 @@ export default function AdminStudentsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+  // Toggle Status Modal State
+  const [studentToToggle, setStudentToToggle] = useState<{ id: string; name: string; phone: string; currentStatus: boolean } | null>(null);
+  const [isTogglingStatus, setIsTogglingStatus] = useState(false);
+  const [isToggleModalOpen, setIsToggleModalOpen] = useState(false);
+
   const fetchStudents = useCallback(async (page = 1) => {
     setIsLoading(true);
     setError(null);
@@ -88,19 +93,35 @@ export default function AdminStudentsPage() {
     fetchStudents(1);
   }, [fetchStudents]);
 
-  const handleToggleStatus = async (studentId: string, currentStatus: boolean) => {
+  const openToggleModal = (student: User) => {
+    setStudentToToggle({
+      id: student.id,
+      name: `${student.firstName} ${student.middleName ? student.middleName + ' ' : ''}${student.lastName}`,
+      phone: student.phoneNumber,
+      currentStatus: student.isActive,
+    });
+    setIsToggleModalOpen(true);
+  };
+
+  const handleExecuteToggleStatus = async () => {
+    if (!studentToToggle) return;
+    setIsTogglingStatus(true);
     try {
-      const res = await AdminService.toggleStudentStatus(studentId, !currentStatus);
+      const res = await AdminService.toggleStudentStatus(studentToToggle.id, !studentToToggle.currentStatus);
       if (res.success) {
-        setActionSuccess(`تم ${!currentStatus ? 'تفعيل' : 'تعطيل'} حساب الطالب بنجاح.`);
+        setActionSuccess(`تم ${!studentToToggle.currentStatus ? 'تفعيل' : 'إيقاف'} حساب الطالب بنجاح.`);
         setStudents((prev) =>
-          prev.map((s) => (s.id === studentId ? { ...s, isActive: !currentStatus } : s))
+          prev.map((s) => (s.id === studentToToggle.id ? { ...s, isActive: !studentToToggle.currentStatus } : s))
         );
+        setIsToggleModalOpen(false);
+        setStudentToToggle(null);
         setTimeout(() => setActionSuccess(null), 4000);
       }
     } catch (err: any) {
       setError(err.message || 'فشل في تغيير حالة الطالب');
       setTimeout(() => setError(null), 5000);
+    } finally {
+      setIsTogglingStatus(false);
     }
   };
 
@@ -312,7 +333,7 @@ export default function AdminStudentsPage() {
                       ) : (
                         <span className="inline-flex items-center gap-1 text-[10px] text-slate-500 font-medium">
                           <Clock className="w-3 h-3" />
-                          قيد التأكيد
+                          غير موثق
                         </span>
                       )}
                     </td>
@@ -327,7 +348,7 @@ export default function AdminStudentsPage() {
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
                           <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
-                          معطل
+                          موقوف
                         </span>
                       )}
                     </td>
@@ -343,24 +364,32 @@ export default function AdminStudentsPage() {
                         {/* View Details */}
                         <button
                           onClick={() => openStudentDetails(student.id)}
-                          title="عرض التفاصيل"
+                          title="عرض التفاصيل الأكاديمية"
                           className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
 
-                        {/* Toggle Status */}
-                        <button
-                          onClick={() => handleToggleStatus(student.id, student.isActive)}
-                          title={student.isActive ? 'تعطيل الحساب' : 'تفعيل الحساب'}
-                          className={`p-1.5 rounded-lg transition ${
-                            student.isActive
-                              ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400'
-                              : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400'
-                          }`}
-                        >
-                          {student.isActive ? <XCircle className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-                        </button>
+                        {/* Toggle Status Action Button */}
+                        {student.isActive ? (
+                          <button
+                            onClick={() => openToggleModal(student)}
+                            title="إيقاف حساب الطالب"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition-all"
+                          >
+                            <AlertTriangle className="w-3 h-3" />
+                            <span>إيقاف الحساب</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => openToggleModal(student)}
+                            title="تفعيل حساب الطالب"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-all"
+                          >
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span>تفعيل الحساب</span>
+                          </button>
+                        )}
 
                         {/* Delete (Owner only) */}
                         {isOwner && (
@@ -613,6 +642,81 @@ export default function AdminStudentsPage() {
               >
                 {isDeleting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                 حذف نهائي
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 3. TOGGLE STUDENT STATUS CONFIRMATION MODAL */}
+      {/* ========================================================================= */}
+      {isToggleModalOpen && studentToToggle && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-in fade-in zoom-in duration-150">
+            <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
+              <div
+                className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold ${
+                  studentToToggle.currentStatus
+                    ? 'bg-amber-500/20 text-amber-400'
+                    : 'bg-emerald-500/20 text-emerald-400'
+                }`}
+              >
+                {studentToToggle.currentStatus ? (
+                  <AlertTriangle className="w-5 h-5" />
+                ) : (
+                  <CheckCircle2 className="w-5 h-5" />
+                )}
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">
+                  {studentToToggle.currentStatus ? 'تأكيد إيقاف حساب الطالب' : 'تأكيد تفعيل حساب الطالب'}
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {studentToToggle.name} ({studentToToggle.phone})
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              {studentToToggle.currentStatus
+                ? 'عند إيقاف الحساب، لن يتمكن الطالب من تسجيل الدخول إلى المنصة أو مشاهدة المحاضرات حتى تتم إعادة تفعيله.'
+                : 'عند تفعيل الحساب، سيتمكن الطالب من تسجيل الدخول فوراً والوصول إلى كافة خدمات المنصة.'}
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isTogglingStatus}
+                onClick={() => {
+                  setIsToggleModalOpen(false);
+                  setStudentToToggle(null);
+                }}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition"
+              >
+                إلغاء
+              </button>
+
+              <button
+                type="button"
+                disabled={isTogglingStatus}
+                onClick={handleExecuteToggleStatus}
+                className={`px-5 py-2 text-xs font-black rounded-xl shadow-lg flex items-center gap-2 transition ${
+                  studentToToggle.currentStatus
+                    ? 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                    : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                }`}
+              >
+                {isTogglingStatus ? (
+                  <span className="flex items-center gap-1.5">
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>جاري التنفيذ...</span>
+                  </span>
+                ) : (
+                  <span>
+                    {studentToToggle.currentStatus ? 'نعم، إيقاف الحساب' : 'نعم، تفعيل الحساب'}
+                  </span>
+                )}
               </button>
             </div>
           </div>
