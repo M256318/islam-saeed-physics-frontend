@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Phone, Lock, ArrowLeft, ArrowRight, CheckCircle2, ShieldCheck, KeyRound, RefreshCw, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, ArrowLeft, ArrowRight, CheckCircle2, ShieldCheck, KeyRound, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import { AlertBanner } from '@/components/UIState';
 import { AuthService } from '@/services/auth.service';
 
@@ -15,7 +15,7 @@ function ForgotPasswordForm() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   // Form fields
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -44,26 +44,26 @@ function ForgotPasswordForm() {
     };
   }, [cooldown]);
 
-  // Handle Step 1: Send OTP
+  // Handle Step 1: Send Email OTP
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccessMessage(null);
 
-    const trimmedPhone = phoneNumber.trim();
-    if (!trimmedPhone) {
-      setError('يرجى إدخال رقم الهاتف المسجل');
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setError('يرجى إدخال البريد الإلكتروني المسجل');
       return;
     }
 
     setIsLoading(true);
     try {
-      const res = await AuthService.forgotPassword(trimmedPhone);
-      setSuccessMessage(res.message || 'تم إرسال رمز التحقق في رسالة نصية بنجاح.');
+      const res = await AuthService.forgotPassword(trimmedEmail);
+      setSuccessMessage(res.message || 'تم إرسال رمز التحقق إلى بريدك الإلكتروني إذا كان الحساب مسجلاً.');
       setCooldown(60);
       setStep(2);
     } catch (err: any) {
-      setError(err.message || 'فشل في إرسال رمز التحقق. يرجى التأكد من رقم الهاتف والمحاولة لاحقاً.');
+      setError(err.message || 'فشل في إرسال رمز التحقق. يرجى التأكد من البريد الإلكتروني والمحاولة لاحقاً.');
     } finally {
       setIsLoading(false);
     }
@@ -77,8 +77,8 @@ function ForgotPasswordForm() {
     setIsLoading(true);
 
     try {
-      const res = await AuthService.forgotPassword(phoneNumber.trim());
-      setSuccessMessage(res.message || 'تم إعادة إرسال رمز التحقق بنجاح.');
+      const res = await AuthService.forgotPassword(email.trim());
+      setSuccessMessage(res.message || 'تم إعادة إرسال رمز التحقق إلى بريدك الإلكتروني بنجاح.');
       setCooldown(60);
     } catch (err: any) {
       setError(err.message || 'فشل في إعادة إرسال رمز التحقق.');
@@ -116,7 +116,7 @@ function ForgotPasswordForm() {
     setIsLoading(true);
     try {
       await AuthService.resetPassword({
-        phoneNumber: phoneNumber.trim(),
+        email: email.trim(),
         otp: cleanOtp,
         newPassword,
         confirmPassword,
@@ -154,7 +154,7 @@ function ForgotPasswordForm() {
           استعادة كلمة المرور
         </h2>
         <p className="mt-1.5 text-xs text-slate-600">
-          {step === 1 && 'أدخل رقم هاتفك المسجل لاستلام رمز التحقق وإعادة تعيين كلمة المرور'}
+          {step === 1 && 'أدخل بريدك الإلكتروني المسجل لاستلام رمز التحقق وإعادة تعيين كلمة المرور'}
           {step === 2 && 'أدخل رمز التحقق المكون من 6 أرقام وكلمة المرور الجديدة'}
           {step === 3 && 'تم إعادة تعيين كلمة المرور بنجاح'}
         </p>
@@ -167,27 +167,27 @@ function ForgotPasswordForm() {
           {successMessage && step !== 3 && <AlertBanner type="success" message={successMessage} />}
 
           {/* ========================================================================= */}
-          {/* STEP 1: PHONE NUMBER INPUT */}
+          {/* STEP 1: EMAIL INPUT */}
           {/* ========================================================================= */}
           {step === 1 && (
             <form onSubmit={handleRequestOtp} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  رقم الهاتف المسجل في المنصة
+                  البريد الإلكتروني المسجل في المنصة
                 </label>
                 <div className="relative">
-                  <Phone className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
+                  <Mail className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
                   <input
-                    type="text"
+                    type="email"
                     required
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="مثال: 01012345678"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="example@email.com"
                     className="w-full pr-10 pl-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 font-mono"
                   />
                 </div>
                 <p className="text-[11px] text-slate-500 mt-1.5">
-                  سيتم إرسال رمز تحقق مكون من 6 أرقام إلى هذا الرقم.
+                  سيتم إرسال رمز تحقق مكوّن من 6 أرقام إلى هذا البريد الإلكتروني.
                 </p>
               </div>
 
@@ -217,9 +217,9 @@ function ForgotPasswordForm() {
           {step === 2 && (
             <form onSubmit={handleResetPassword} className="space-y-4">
               <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2 text-slate-700">
-                  <Phone className="w-4 h-4 text-primary-600" />
-                  <span>الرقم: <strong className="font-mono">{phoneNumber}</strong></span>
+                <div className="flex items-center gap-2 text-slate-700 truncate max-w-[240px]">
+                  <Mail className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                  <span className="truncate">البريد: <strong className="font-mono text-slate-900">{email}</strong></span>
                 </div>
                 <button
                   type="button"
@@ -228,9 +228,9 @@ function ForgotPasswordForm() {
                     setOtp('');
                     setError(null);
                   }}
-                  className="text-primary-600 hover:text-primary-700 font-bold text-[11px] hover:underline"
+                  className="text-primary-600 hover:text-primary-700 font-bold text-[11px] hover:underline flex-shrink-0"
                 >
-                  تغيير الرقم
+                  تغيير البريد
                 </button>
               </div>
 

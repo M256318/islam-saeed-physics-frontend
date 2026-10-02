@@ -66,15 +66,15 @@ export const AuthService = {
     return apiClient<{ user: User }>('/auth/me');
   },
 
-  async forgotPassword(phoneNumber: string) {
-    return apiClient('/auth/forgot-password', {
+  async forgotPassword(email: string) {
+    return apiClient<{ message: string; cooldownSeconds?: number }>('/auth/forgot-password', {
       method: 'POST',
-      body: JSON.stringify({ phoneNumber }),
+      body: JSON.stringify({ email }),
     });
   },
 
-  async resetPassword(data: { phoneNumber: string; otp: string; newPassword: string; confirmPassword: string }) {
-    return apiClient('/auth/reset-password', {
+  async resetPassword(data: { email: string; otp: string; newPassword: string; confirmPassword: string }) {
+    return apiClient<{ message: string }>('/auth/reset-password', {
       method: 'POST',
       body: JSON.stringify(data),
     });
