@@ -13,13 +13,17 @@ import {
   CheckCircle2, 
   AlertCircle,
   Eye,
-  Trash2
+  Trash2,
+  FileCheck2,
+  UploadCloud
 } from 'lucide-react';
 import { LoadingSpinner, AlertBanner, EmptyState, ErrorState } from '@/components/UIState';
+import AudioPlayer from '@/components/AudioPlayer';
 
 export default function StudentQuestionsPage() {
   const { user } = useAuth();
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [modalImage, setModalImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,10 +66,10 @@ export default function StudentQuestionsPage() {
       return;
     }
 
-    // Validate type
+    // Validate type (JPG, JPEG, PNG, WEBP)
     const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-    if (!validTypes.includes(file.type)) {
-      setError('نوع الملف غير مدعوم. يرجى رفع صورة بصيغة JPG أو PNG أو WEBP.');
+    if (!validTypes.includes(file.type.toLowerCase())) {
+      setError('نوع الملف غير مدعوم. يرجى رفع صورة صالحة بصيغة JPG أو PNG أو WEBP.');
       return;
     }
 
@@ -85,6 +89,12 @@ export default function StudentQuestionsPage() {
     }
   };
 
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -96,10 +106,15 @@ export default function StudentQuestionsPage() {
       return;
     }
 
+    if (!content.trim() && !selectedFile) {
+      setError('يرجى كتابة تفاصيل السؤال أو اختيار صورة المسألة من جهازك.');
+      return;
+    }
+
     setIsSubmitting(true);
     const formData = new FormData();
-    formData.append('title', title);
-    formData.append('content', content);
+    formData.append('title', title.trim());
+    formData.append('content', content.trim() || 'مرفق صورة المسألة مع السؤال');
     formData.append('chapter', chapter);
     formData.append('academicYear', user?.academicYear || 'GRADE_12');
     if (selectedFile) {
@@ -131,7 +146,7 @@ export default function StudentQuestionsPage() {
       <div>
         <h1 className="text-2xl font-black text-slate-900">اسأل مستر إسلام سعيد</h1>
         <p className="text-xs text-slate-600 mt-1">
-          واجهتك مسألة أو استفسار فيزيائي؟ صوره واكتب توضيحك وسيقوم المستر بالرد والشرح.
+          واجهتك مسألة أو استفسار فيزيائي؟ اكتب سؤالك أو ارفع صورة المسألة من جهازك وسيقوم المستر بالرد والشرح.
         </p>
       </div>
 
@@ -183,7 +198,7 @@ export default function StudentQuestionsPage() {
                 disabled={isLimitReached}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="مثال: استفسار حول توصيل المقاومات وتوزيع التيار"
+                placeholder="مثال: استفسار حول توصيل المقاومات وقانون كيرشوف"
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 disabled:opacity-50"
               />
             </div>
@@ -207,10 +222,11 @@ export default function StudentQuestionsPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">تفاصيل المسألة أو السؤال *</label>
+            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              تفاصيل المسألة أو السؤال <span className="text-slate-400 font-normal">(اختياري عند إرفاق صورة)</span>
+            </label>
             <textarea
               rows={4}
-              required
               disabled={isLimitReached}
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -222,32 +238,48 @@ export default function StudentQuestionsPage() {
           {/* Image Upload Box */}
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1.5">
-              صورة المسألة (اختياري - JPG, PNG, WEBP حتى 5MB)
+              صورة المسألة أو الرسم البياني (JPG, JPEG, PNG, WEBP حتى 5MB)
             </label>
 
-            {imagePreview ? (
-              <div className="relative w-fit border border-slate-200 rounded-2xl overflow-hidden p-2 bg-slate-50">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imagePreview} alt="معاينة المسألة" className="max-h-48 rounded-xl object-contain" />
-                <button
-                  type="button"
-                  onClick={handleRemoveImage}
-                  className="absolute top-3 left-3 p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-md transition-colors"
-                  title="حذف الصورة"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+            {imagePreview && selectedFile ? (
+              <div className="relative border border-primary-200 rounded-2xl p-4 bg-primary-50/40 space-y-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-16 h-16 rounded-xl border border-slate-200 overflow-hidden bg-white shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={imagePreview} alt="معاينة المسألة" className="w-full h-full object-contain" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                        <FileCheck2 className="w-4 h-4 text-emerald-600" />
+                        <span className="truncate max-w-[220px] sm:max-w-xs">{selectedFile.name}</span>
+                      </div>
+                      <span className="text-[11px] text-slate-500 font-mono mt-0.5 block">
+                        الحجم: {formatFileSize(selectedFile.size)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold rounded-xl transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>إزالة الصورة</span>
+                  </button>
+                </div>
               </div>
             ) : (
               <div
                 onClick={() => !isLimitReached && fileInputRef.current?.click()}
-                className={`border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center cursor-pointer hover:bg-slate-50 transition-colors ${
+                className={`border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center cursor-pointer hover:bg-slate-50 hover:border-primary-400 transition-all ${
                   isLimitReached ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
-                <ImageIcon className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                <UploadCloud className="w-8 h-8 text-primary-600 mx-auto mb-2" />
                 <p className="text-xs font-bold text-slate-700">اضغط هنا لاختيار صورة المسألة من جهازك</p>
-                <p className="text-[11px] text-slate-400 mt-1">الحد الأقصى 5 ميجابايت</p>
+                <p className="text-[11px] text-slate-400 mt-1">يدعم JPG, JPEG, PNG, WEBP (الحد الأقصى 5 ميجابايت)</p>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -313,43 +345,95 @@ export default function StudentQuestionsPage() {
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">{q.content}</p>
+                {q.content && (
+                  <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">{q.content}</p>
+                )}
 
                 {/* Question Image if uploaded */}
                 {q.imageUrl && (
                   <div className="pt-2">
                     <span className="text-[11px] font-bold text-slate-500 block mb-1.5">صورة المسألة المرفقة:</span>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={q.imageUrl.startsWith('http') ? q.imageUrl : `http://localhost:5000${q.imageUrl}`}
-                      alt="صورة السؤال"
-                      className="max-h-64 rounded-xl border border-slate-200 object-contain bg-slate-50"
-                    />
+                    <div className="relative inline-block group">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={q.imageUrl}
+                        alt="صورة السؤال"
+                        onClick={() => setModalImage(q.imageUrl || null)}
+                        className="max-h-64 rounded-xl border border-slate-200 object-contain bg-slate-50 cursor-pointer group-hover:opacity-90 transition-opacity"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setModalImage(q.imageUrl || null)}
+                        className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/70 hover:bg-black/90 text-white rounded-lg text-[10px] font-bold backdrop-blur-sm flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span>عرض بالحجم الكامل</span>
+                      </button>
+                    </div>
                   </div>
                 )}
 
                 {/* Teacher Answer Box */}
-                {q.status === 'ANSWERED' && q.answerText ? (
-                  <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 space-y-2">
-                    <div className="flex items-center justify-between">
+                {q.status === 'ANSWERED' && (q.answerText || q.answerImageUrl || q.answerAudioUrl) ? (
+                  <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50/80 border border-emerald-200 space-y-3">
+                    <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2">
                       <span className="text-xs font-black text-emerald-950 flex items-center gap-1.5">
                         <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                         <span>إجابة وتوضيح مستر إسلام سعيد:</span>
                       </span>
                       {q.answeredAt && (
                         <span className="text-[10px] text-emerald-700 font-mono">
-                          {new Date(q.answeredAt).toLocaleDateString('ar-EG')}
+                          {new Date(q.answeredAt).toLocaleString('ar-EG')}
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-emerald-900 leading-relaxed whitespace-pre-wrap font-medium">
-                      {q.answerText}
-                    </p>
+
+                    {/* 1. Answer Text */}
+                    {q.answerText && (
+                      <p className="text-xs text-emerald-900 leading-relaxed whitespace-pre-wrap font-medium">
+                        {q.answerText}
+                      </p>
+                    )}
+
+                    {/* 2. Answer Image */}
+                    {q.answerImageUrl && (
+                      <div className="pt-2 space-y-1">
+                        <span className="text-[11px] font-bold text-emerald-900 block">الصورة المرفقة مع الإجابة:</span>
+                        <div className="relative inline-block group">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={q.answerImageUrl}
+                            alt="صورة إجابة المستر"
+                            onClick={() => setModalImage(q.answerImageUrl || null)}
+                            className="max-h-64 rounded-xl border border-emerald-300 object-contain bg-white cursor-pointer group-hover:opacity-90 transition-opacity"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setModalImage(q.answerImageUrl || null)}
+                            className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/70 hover:bg-black/90 text-white rounded-lg text-[10px] font-bold backdrop-blur-sm flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Eye className="w-3 h-3" />
+                            <span>تكبير الصورة</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 3. Answer Audio */}
+                    {q.answerAudioUrl && (
+                      <div className="pt-2">
+                        <AudioPlayer
+                          src={q.answerAudioUrl}
+                          title="تسجيل صوتي من مستر إسلام سعيد"
+                          theme="light"
+                        />
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 p-3 rounded-xl">
+                  <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200">
                     <Clock className="w-4 h-4 shrink-0" />
-                    <span>سؤالك قيد المراجعة حاليًا من قبل مستر إسلام سعيد وسيتم إشعارك فور كتابة الشرح.</span>
+                    <span>سؤالك قيد المراجعة حاليًا من قبل مستر إسلام سعيد وسيتم إشعارك فور كتابة الشرح أو إرسال التسجيل الصوتي.</span>
                   </div>
                 )}
               </div>
@@ -357,6 +441,38 @@ export default function StudentQuestionsPage() {
           </div>
         )}
       </div>
+
+      {/* Full-Size Image Modal */}
+      {modalImage && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setModalImage(null)}
+        >
+          <div
+            className="relative max-w-4xl max-h-[90vh] bg-white rounded-3xl p-2 border border-slate-200 shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-3 border-b border-slate-100">
+              <span className="text-xs font-bold text-slate-800">معاينة الصورة بالحجم الكامل</span>
+              <button
+                type="button"
+                onClick={() => setModalImage(null)}
+                className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-2 flex items-center justify-center overflow-auto max-h-[80vh]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={modalImage}
+                alt="معاينة الصورة"
+                className="max-h-[75vh] w-auto rounded-xl object-contain"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

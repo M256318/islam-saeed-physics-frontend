@@ -13,7 +13,7 @@ export default function Footer() {
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-xl bg-slate-800 p-1 flex items-center justify-center text-white shadow-md border border-slate-700/60 overflow-hidden relative">
                 <Image
-                  src="/logo.png"
+                  src="/WEB.png"
                   alt="شعار منصة مستر إسلام سعيد"
                   width={44}
                   height={44}
@@ -30,7 +30,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-sm text-slate-400 leading-relaxed">
-              خبرة أكثر من 6 سنوات في تبسيط مفاهيم الفيزياء لطلاب الثانوية العامة والأزهرية بأساليب مبتكرة تعتمد على الفهم والتطبيق العملي.
+              خبرة أكثر من 10 سنوات في تبسيط مفاهيم الفيزياء لطلاب الثانوية العامة والأزهرية بأساليب مبتكرة تعتمد على الفهم والتطبيق العملي.
             </p>
             <div className="flex items-center gap-2 text-xs text-amber-400 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20 w-fit">
               <Award className="w-4 h-4" />
@@ -57,11 +57,6 @@ export default function Footer() {
               <li>
                 <Link href="/lectures" className="hover:text-primary-400 transition-colors">
                   المحاضرات والشروحات
-                </Link>
-              </li>
-              <li>
-                <Link href="/courses" className="hover:text-primary-400 transition-colors">
-                  الكورسات والمجموعات المتاحة
                 </Link>
               </li>
               <li>

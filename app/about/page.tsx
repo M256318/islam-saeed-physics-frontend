@@ -30,10 +30,10 @@ export default function AboutPage() {
             <div className="lg:col-span-2 space-y-8 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
               <div>
                 <h2 className="text-xl font-bold text-slate-900 mb-3 border-r-4 border-primary-600 pr-3">
-                  رحلة أكثر من 6 سنوات في خدمة طلاب مصر
+                  رحلة أكثر من 10 سنوات في خدمة طلاب مصر
                 </h2>
                 <p className="text-sm text-slate-600 leading-loose">
-                  بدأت مسيرة مستر إسلام سعيد منذ أكثر من 6 سنوات بهدف واحد وواضح: تحويل مادة الفيزياء من مصدر خوف وتعقيد لطلاب الثانوية إلى مادة ممتعة، مفهومة، ومضمونة في الدرجات. اعتمدت طريقته دائمًا على ربط القوانين النظرية بالتطبيقات الحياتية والتجارب المعملية الحية.
+                  بدأت مسيرة مستر إسلام سعيد منذ أكثر من 10 سنوات بهدف واحد وواضح: تحويل مادة الفيزياء من مصدر خوف وتعقيد لطلاب الثانوية إلى مادة ممتعة، مفهومة، ومضمونة في الدرجات. اعتمدت طريقته دائمًا على ربط القوانين النظرية بالتطبيقات الحياتية والتجارب المعملية الحية.
                 </p>
               </div>
 
@@ -82,7 +82,7 @@ export default function AboutPage() {
                 <div className="space-y-3">
                   <div className="bg-white p-4 rounded-2xl border border-primary-100 flex items-center justify-between">
                     <span className="text-xs text-slate-600">سنوات الخبرة</span>
-                    <span className="font-black text-lg text-primary-700">+6 سنوات</span>
+                    <span className="font-black text-lg text-primary-700">+10 سنوات</span>
                   </div>
                   <div className="bg-white p-4 rounded-2xl border border-primary-100 flex items-center justify-between">
                     <span className="text-xs text-slate-600">الطلاب المتفوقين</span>

@@ -54,7 +54,6 @@ export default function Navbar() {
     { name: 'الرئيسية', href: '/' },
     { name: 'عن المستر', href: '/about' },
     { name: 'المحاضرات', href: '/lectures' },
-    { name: 'الكورسات والمجموعات', href: '/courses' },
     { name: 'تواصل معنا', href: '/contact' },
   ];
 
@@ -72,7 +71,7 @@ export default function Navbar() {
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-slate-900/5 p-1 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform overflow-hidden relative">
               <Image
-                src="/logo.png"
+                src="/WEB.png"
                 alt="منصة مستر إسلام سعيد للفيزياء"
                 width={44}
                 height={44}

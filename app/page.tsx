@@ -51,7 +51,7 @@ export default function HomePage() {
 
               {/* Subtext */}
               <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
-                خبرة أكثر من 6 سنوات في تدريس الفيزياء للثانوية العامة والأزهرية. شرح وافٍ للمنهج من الأساسيات حتى أصعب أفكار امتحانات الثانوية مع متابعة يومية وحل المسائل خطوة بخطوة.
+                خبرة أكثر من 10 سنوات في تدريس الفيزياء للثانوية العامة والأزهرية. شرح وافٍ للمنهج من الأساسيات حتى أصعب أفكار امتحانات الثانوية مع متابعة يومية وحل المسائل خطوة بخطوة.
               </p>
 
               {/* CTAs */}
@@ -75,7 +75,7 @@ export default function HomePage() {
               {/* Highlights */}
               <div className="grid grid-cols-3 gap-3 pt-6 max-w-lg mx-auto lg:mx-0 border-t border-slate-200/80">
                 <div className="text-center lg:text-right">
-                  <span className="block text-2xl sm:text-3xl font-black text-slate-900">+6</span>
+                  <span className="block text-2xl sm:text-3xl font-black text-slate-900">+10</span>
                   <span className="text-xs font-semibold text-slate-500">سنوات من الخبرة</span>
                 </div>
                 <div className="text-center lg:text-right border-x border-slate-200 px-2">
@@ -333,13 +333,6 @@ export default function HomePage() {
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     <span>الحجز متاح الآن للمرحلة الثانوية بصفوفها الثلاثة</span>
                   </p>
-                  <Link
-                    href="/courses"
-                    className="inline-flex items-center gap-2 text-primary-300 hover:text-white font-bold transition-colors"
-                  >
-                    <span>عرض مواعيد مجموعات سمالوط والكورسات المتاحة</span>
-                    <ArrowLeft className="w-4 h-4" />
-                  </Link>
                 </div>
               </div>
             </div>

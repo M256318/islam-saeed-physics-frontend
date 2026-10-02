@@ -192,6 +192,8 @@ export interface Question {
   imageUrl?: string | null;
   status: QuestionStatus;
   answerText?: string | null;
+  answerImageUrl?: string | null;
+  answerAudioUrl?: string | null;
   answeredBy?: string | null;
   answeredAt?: string | null;
   createdAt: string;

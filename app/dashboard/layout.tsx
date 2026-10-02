@@ -60,7 +60,7 @@ export default function StudentDashboardLayout({
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-slate-100 p-0.5 flex items-center justify-center overflow-hidden relative">
             <Image
-              src="/logo.png"
+              src="/WEB.png"
               alt="لوحة الطالب"
               width={32}
               height={32}
@@ -89,7 +89,7 @@ export default function StudentDashboardLayout({
           <Link href="/" className="flex items-center gap-3 px-2 py-1 group">
             <div className="w-10 h-10 rounded-xl bg-slate-800 p-1 flex items-center justify-center text-white shadow-md border border-slate-700/60 overflow-hidden relative group-hover:scale-105 transition-transform">
               <Image
-                src="/logo.png"
+                src="/WEB.png"
                 alt="مستر إسلام سعيد"
                 width={40}
                 height={40}
@@ -168,3 +168,4 @@ export default function StudentDashboardLayout({
     </div>
   );
 }
+

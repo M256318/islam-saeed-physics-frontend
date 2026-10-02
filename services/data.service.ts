@@ -167,10 +167,10 @@ export const QuestionService = {
     return apiClient<Question>(`/questions/${id}`);
   },
 
-  async answerQuestion(id: string, answerText: string) {
+  async answerQuestion(id: string, body: FormData | { answerText: string; status?: string }) {
     return apiClient<Question>(`/questions/${id}/answer`, {
       method: 'POST',
-      body: JSON.stringify({ answerText }),
+      body: body instanceof FormData ? body : JSON.stringify(body),
     });
   },
 };
@@ -184,6 +184,16 @@ export const NotificationService = {
     return apiClient<UserNotification>(`/notifications/${id}/read`, {
       method: 'PATCH',
     });
+  },
+
+  async markAllAsRead() {
+    return apiClient<{ message: string }>('/notifications/read-all', {
+      method: 'PATCH',
+    });
+  },
+
+  async getUnreadCount() {
+    return apiClient<{ unreadCount: number }>('/notifications/unread-count');
   },
 };
 

@@ -84,7 +84,7 @@ function VerifyEmailContent() {
         <Link href="/" className="inline-flex items-center gap-2.5 mb-4 group">
           <div className="w-12 h-12 rounded-2xl bg-white p-1.5 flex items-center justify-center shadow-md border border-slate-200/80 group-hover:scale-105 transition-transform overflow-hidden relative">
             <Image
-              src="/logo.png"
+              src="/WEB.png"
               alt="شعار منصة مستر إسلام سعيد للفيزياء"
               width={48}
               height={48}
@@ -247,3 +247,4 @@ export default function VerifyEmailPage() {
     </Suspense>
   );
 }
+

@@ -174,7 +174,7 @@ export default function AdminDashboardLayout({
           <Link href="/admin" className="flex items-center gap-3 px-2 py-1 group">
             <div className="w-10 h-10 rounded-xl bg-slate-800 p-1 flex items-center justify-center text-white shadow-md border border-slate-700/60 overflow-hidden relative group-hover:scale-105 transition-transform">
               <Image
-                src="/logo.png"
+                src="/WEB.png"
                 alt="منصة مستر إسلام سعيد"
                 width={40}
                 height={40}
@@ -278,3 +278,4 @@ export default function AdminDashboardLayout({
     </div>
   );
 }
+
