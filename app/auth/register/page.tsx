@@ -191,6 +191,14 @@ export default function RegisterPage() {
                 </button>
 
                 <Link
+                  href={`/auth/verify-otp?phone=${encodeURIComponent(formData.phoneNumber.trim())}`}
+                  className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all inline-flex items-center justify-center gap-2"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>تأكيد رقم الهاتف الآن (اختياري)</span>
+                </Link>
+
+                <Link
                   href="/auth/login"
                   className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-xl shadow-md shadow-primary-500/20 transition-all inline-flex items-center justify-center gap-2"
                 >

@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { BookingService, QuestionService, LectureService, NotificationService } from '@/services/data.service';
-import { Booking, Question, Lecture, UserNotification } from '@/types';
+import { BookingService, QuestionService, LectureService, NotificationService, CourseService } from '@/services/data.service';
+import { Booking, Question, Lecture, UserNotification, Course } from '@/types';
 import Link from 'next/link';
 import { 
   PlayCircle, 
@@ -24,6 +24,7 @@ export default function StudentDashboardPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [lectures, setLectures] = useState<Lecture[]>([]);
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -32,11 +33,15 @@ export default function StudentDashboardPage() {
       QuestionService.getMyQuestions().catch(() => ({ success: false, data: [] })),
       LectureService.getLectures({ limit: 4 }).catch(() => ({ success: false, data: [] })),
       NotificationService.getNotifications().catch(() => ({ success: false, data: [] })),
-    ]).then(([bookingsRes, questionsRes, lecturesRes, notifsRes]) => {
+      CourseService.getCourses({ limit: 3 }).catch(() => ({ success: false, data: [] })),
+    ]).then(([bookingsRes, questionsRes, lecturesRes, notifsRes, coursesRes]) => {
       if (bookingsRes.success) setBookings(bookingsRes.data || []);
       if (questionsRes.success) setQuestions(questionsRes.data || []);
       if (lecturesRes.success) setLectures(lecturesRes.data || []);
       if (notifsRes.success) setNotifications(notifsRes.data || []);
+      if (coursesRes.success && Array.isArray(coursesRes.data)) {
+        setAvailableCourses(coursesRes.data.filter((course) => course.status === 'PUBLISHED'));
+      }
       setIsLoading(false);
     });
   }, []);
@@ -73,7 +78,7 @@ export default function StudentDashboardPage() {
             <BookOpen className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-xs text-slate-500 font-semibold block">الكورسات والحجوزات</span>
+            <span className="text-xs text-slate-500 font-semibold block">الحجوزات النشطة</span>
             <span className="text-2xl font-black text-slate-900">{activeBookingsCount}</span>
           </div>
         </div>
@@ -159,7 +164,7 @@ export default function StudentDashboardPage() {
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="font-bold text-base text-slate-900 flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-primary-600" />
-              <span>مجموعاتي وكورساتي</span>
+              <span>حجوزاتي</span>
             </h2>
             <Link
               href="/courses"
@@ -188,13 +193,17 @@ export default function StudentDashboardPage() {
                           ? 'bg-emerald-100 text-emerald-800'
                           : b.status === 'CANCELLED'
                           ? 'bg-red-100 text-red-800'
+                          : b.status === 'COMPLETED'
+                          ? 'bg-slate-200 text-slate-700'
                           : 'bg-amber-100 text-amber-800'
                       }`}
                     >
                       {b.status === 'CONFIRMED'
-                        ? 'مؤكد ومقبول'
+                        ? 'تم تأكيد الحجز'
                         : b.status === 'CANCELLED'
                         ? 'ملغي'
+                        : b.status === 'COMPLETED'
+                        ? 'مكتمل'
                         : 'قيد المراجعة'}
                     </span>
                   </div>
@@ -211,6 +220,56 @@ export default function StudentDashboardPage() {
           )}
         </div>
       </div>
+
+      <section className="space-y-4">
+        <div className="flex flex-col gap-3 border-b border-slate-200 pb-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="font-bold text-base text-slate-900">استكشف الكورسات المتاحة</h2>
+            <p className="mt-1 text-xs text-slate-500">كورسات منشورة يمكنك استعراض تفاصيلها.</p>
+          </div>
+          <Link
+            href="/courses"
+            className="inline-flex items-center gap-1 text-xs font-bold text-primary-700 hover:text-primary-800"
+          >
+            <span>تصفح الكورسات</span>
+            <ArrowLeft className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+
+        {availableCourses.length === 0 ? (
+          <p className="rounded-xl border border-slate-200 bg-white px-4 py-5 text-center text-xs text-slate-500">
+            لا توجد كورسات منشورة متاحة حاليًا.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {availableCourses.map((course) => (
+              <Link
+                key={course.id}
+                href={`/courses/${course.id}`}
+                className="flex min-w-0 items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 transition-colors hover:border-primary-300 hover:bg-primary-50/30"
+              >
+                <div className="h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+                  {course.thumbnailUrl ? (
+                    <img src={course.thumbnailUrl} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-primary-700">
+                      <BookOpen className="h-6 w-6" aria-hidden="true" />
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <h3 className="line-clamp-2 text-sm font-bold text-slate-900">{course.title}</h3>
+                  <p className="mt-1 text-xs font-semibold text-slate-500">
+                    {course.isFree || Number(course.price) === 0
+                      ? 'مجاني'
+                      : `${Number(course.price).toFixed(2)} ${course.currency || 'EGP'}`}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

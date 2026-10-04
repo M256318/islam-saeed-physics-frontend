@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import {
   ShieldCheck,
@@ -24,6 +24,10 @@ import {
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/UIState';
 
+// POST /api/v1/admin/apply is public on the backend, so this page must stay reachable
+// for visitors who are not (yet) administrators.
+const PUBLIC_ADMIN_PATH = '/admin/apply';
+
 interface NavItem {
   name: string;
   href: string;
@@ -31,6 +35,52 @@ interface NavItem {
   ownerOnly?: boolean;
   requiredPermission?: string;
   badge?: string;
+}
+
+/**
+ * Reads ?tab= so '/admin/admins' and '/admin/admins?tab=requests' are not both
+ * highlighted. Wrapped in <Suspense> by the caller because useSearchParams
+ * opts a route out of static rendering.
+ */
+function AdminNavLinks({
+  items,
+  pathname,
+  onNavigate,
+}: {
+  items: NavItem[];
+  pathname: string;
+  onNavigate: () => void;
+}) {
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get('tab');
+
+  return (
+    <>
+      {items.map((item) => {
+        const [itemPath, itemQuery] = item.href.split('?');
+        const itemTab = itemQuery ? new URLSearchParams(itemQuery).get('tab') : null;
+        const isActive = itemTab
+          ? pathname === itemPath && currentTab === itemTab
+          : pathname === itemPath && !currentTab;
+        const Icon = item.icon;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onNavigate}
+            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+              isActive
+                ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 font-black'
+                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            <Icon className="w-4 h-4 flex-shrink-0" />
+            <span className="truncate">{item.name}</span>
+          </Link>
+        );
+      })}
+    </>
+  );
 }
 
 export default function AdminDashboardLayout({
@@ -42,16 +92,21 @@ export default function AdminDashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isPublicAdminPage = pathname === PUBLIC_ADMIN_PATH;
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && !isPublicAdminPage) {
       if (!isAuthenticated) {
         router.push('/auth/login?redirect=' + encodeURIComponent(pathname));
       } else if (!isAdmin) {
         router.push('/dashboard');
       }
     }
-  }, [isLoading, isAuthenticated, isAdmin, router, pathname]);
+  }, [isLoading, isAuthenticated, isAdmin, isPublicAdminPage, router, pathname]);
+
+  if (isPublicAdminPage) {
+    return <>{children}</>;
+  }
 
   if (isLoading || !isAuthenticated || !isAdmin || !user) {
     return (
@@ -210,25 +265,21 @@ export default function AdminDashboardLayout({
 
           {/* Navigation */}
           <nav className="space-y-1">
-            {visibleNavItems.map((item) => {
-              const isActive = pathname === item.href || (item.href.includes('tab=') && pathname === '/admin/admins');
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                    isActive
-                      ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 font-black'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                  }`}
-                >
-                  <Icon className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">{item.name}</span>
-                </Link>
-              );
-            })}
+            <Suspense
+              fallback={
+                <div className="space-y-1" aria-hidden="true">
+                  {visibleNavItems.map((item) => (
+                    <div key={item.href} className="h-10 rounded-xl bg-slate-800/40" />
+                  ))}
+                </div>
+              }
+            >
+              <AdminNavLinks
+                items={visibleNavItems}
+                pathname={pathname}
+                onNavigate={() => setSidebarOpen(false)}
+              />
+            </Suspense>
           </nav>
         </div>
 

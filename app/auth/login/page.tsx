@@ -137,6 +137,15 @@ function LoginForm() {
                 إنشاء حساب طالب جديد
               </Link>
             </p>
+            <p className="text-xs text-slate-500">
+              أنت مدرس فيزياء وترغب في الانضمام لفريق الإشراف؟{' '}
+              <Link
+                href="/admin/apply"
+                className="font-bold text-primary-600 hover:text-primary-700 hover:underline"
+              >
+                قدّم طلب إشراف
+              </Link>
+            </p>
           </div>
         </div>
       </div>

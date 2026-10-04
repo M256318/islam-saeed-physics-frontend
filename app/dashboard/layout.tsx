@@ -16,6 +16,7 @@ import {
   Menu, 
   X,
   PlayCircle,
+  Layers,
   Home
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/UIState';
@@ -47,7 +48,8 @@ export default function StudentDashboardLayout({
   const navItems = [
     { name: 'الرئيسية (لوحة التحكم)', href: '/dashboard', icon: LayoutDashboard },
     { name: 'المحاضرات والشروحات', href: '/lectures', icon: PlayCircle },
-    { name: 'حجوزاتي وكورساتي', href: '/dashboard/bookings', icon: BookOpen },
+    { name: 'كورساتي', href: '/dashboard/courses', icon: Layers },
+    { name: 'حجوزاتي', href: '/dashboard/bookings', icon: BookOpen },
     { name: 'اسأل المستر', href: '/dashboard/questions', icon: HelpCircle },
     { name: 'مركز الإشعارات', href: '/dashboard/notifications', icon: Bell },
     { name: 'الملف الشخصي', href: '/dashboard/profile', icon: User },

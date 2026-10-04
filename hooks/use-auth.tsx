@@ -2,8 +2,31 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User } from '@/types';
-import { AuthService, LoginPayload, RegisterPayload } from '@/services/auth.service';
+import { AuthService, LoginPayload } from '@/services/auth.service';
 import { useRouter } from 'next/navigation';
+
+// Mirrors the backend admin gate: requireRole([OWNER, SUPER_ADMIN, ADMIN])
+const ADMIN_ROLES = ['OWNER', 'SUPER_ADMIN', 'ADMIN'];
+// Mirrors the backend requireOwner gate: OWNER or SUPER_ADMIN
+const OWNER_ROLES = ['OWNER', 'SUPER_ADMIN'];
+
+/**
+ * Reads the ?redirect= target set by the guarded layouts (/dashboard, /admin) and
+ * rejects anything that is not a same-origin in-app path. Runs on the client at
+ * click time, so it never touches useSearchParams (which would de-optimize every page).
+ */
+function resolveRedirectTarget(): string | null {
+  if (typeof window === 'undefined') return null;
+
+  const target = new URLSearchParams(window.location.search).get('redirect');
+  if (!target) return null;
+  // Must be a single-slash absolute path: reject '//evil.com', '/\evil.com', absolute URLs
+  if (!target.startsWith('/') || target.startsWith('//') || target.includes('\\')) return null;
+  if (target.includes(':')) return null;
+  if (/[\x00-\x1f]/.test(target)) return null;
+
+  return target;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -14,7 +37,6 @@ interface AuthContextType {
   hasPermission: (permission: string) => boolean;
   hasAnyPermission: (permissions: string[]) => boolean;
   login: (credentials: LoginPayload) => Promise<void>;
-  register: (data: RegisterPayload) => Promise<void>;
   verifyPhone: (phone: string, otp: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -46,15 +68,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshUser();
   }, [refreshUser]);
 
-  const isOwner = Boolean(
-    user?.roles?.some((r) => r === 'OWNER' || r === 'SUPER_ADMIN')
-  );
+  const isOwner = Boolean(user?.roles?.some((r) => OWNER_ROLES.includes(r)));
 
-  const isAdmin = Boolean(
-    isOwner ||
-    user?.roles?.some((r) => r === 'ADMIN' || r === 'TEACHER') ||
-    user?.permissions?.includes('admin:access')
-  );
+  const isAdmin = Boolean(user?.roles?.some((r) => ADMIN_ROLES.includes(r)));
 
   const hasPermission = useCallback(
     (permission: string): boolean => {
@@ -79,22 +95,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (res.success && res.data?.user) {
       const loggedUser = res.data.user;
       setUser(loggedUser);
-      const userIsAdmin = Boolean(
-        loggedUser.roles?.some((r) => r === 'OWNER' || r === 'SUPER_ADMIN' || r === 'ADMIN' || r === 'TEACHER') ||
-        loggedUser.permissions?.includes('admin:access')
-      );
-      if (userIsAdmin) {
-        router.push('/admin');
-      } else {
-        router.push('/dashboard');
-      }
-    }
-  };
 
-  const register = async (data: RegisterPayload) => {
-    const res = await AuthService.register(data);
-    if (res.success) {
-      router.push(`/auth/verify-otp?phone=${encodeURIComponent(data.phoneNumber)}`);
+      // Honour the ?redirect= target produced by the guarded layouts, otherwise fall back
+      // to the landing page that matches the user's role.
+      const redirectTarget = resolveRedirectTarget();
+      if (redirectTarget) {
+        router.push(redirectTarget);
+        return;
+      }
+
+      const userIsAdmin = Boolean(loggedUser.roles?.some((r) => ADMIN_ROLES.includes(r)));
+      router.push(userIsAdmin ? '/admin' : '/dashboard');
     }
   };
 
@@ -124,7 +135,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         hasPermission,
         hasAnyPermission,
         login,
-        register,
         verifyPhone,
         logout,
         refreshUser,

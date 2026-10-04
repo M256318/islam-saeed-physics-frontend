@@ -64,6 +64,11 @@ export default function Footer() {
                   تواصل معنا
                 </Link>
               </li>
+              <li>
+                <Link href="/admin/apply" className="hover:text-primary-400 transition-colors">
+                  انضم كفريق إشراف
+                </Link>
+              </li>
             </ul>
           </div>
 

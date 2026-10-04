@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api';
-import { Lecture, Course, Booking, Question, UserNotification, AdminStats, User } from '@/types';
+import { Lecture, Course, CourseVideo, Booking, Question, UserNotification } from '@/types';
 
 export const LectureService = {
   async getLectures(params?: { academicYear?: string; chapter?: string; status?: string; courseId?: string; page?: number; limit?: number }) {
@@ -96,30 +96,102 @@ export const LectureService = {
 };
 
 export const CourseService = {
-  async getCourses(params?: { academicYear?: string; page?: number; limit?: number }) {
+  async getCourses(params?: { academicYear?: string; status?: string; search?: string; page?: number; limit?: number }) {
     return apiClient<Course[]>('/courses', { params });
   },
 
   async getCourseById(id: string) {
-    return apiClient<Course>(`/courses/${id}`);
+    return apiClient<{ course: Course }>(`/courses/${id}`).then((res) => ({
+      ...res,
+      data: (res.data as any)?.course || res.data,
+    }));
+  },
+
+  async uploadCourseThumbnail(file: File) {
+    const formData = new FormData();
+    formData.append('thumbnail', file);
+    return apiClient<{ url: string }>('/courses/thumbnails', {
+      method: 'POST',
+      body: formData,
+    });
   },
 
   async createCourse(data: Partial<Course>) {
-    return apiClient<Course>('/courses', {
+    return apiClient<{ course: Course }>('/courses', {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }).then((res) => ({
+      ...res,
+      data: (res.data as any)?.course || res.data,
+    }));
   },
 
   async updateCourse(id: string, data: Partial<Course>) {
-    return apiClient<Course>(`/courses/${id}`, {
+    return apiClient<{ course: Course }>(`/courses/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
-    });
+    }).then((res) => ({
+      ...res,
+      data: (res.data as any)?.course || res.data,
+    }));
+  },
+
+  async updateStatus(id: string, status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED') {
+    return apiClient<{ course: Course }>(`/courses/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }).then((res) => ({
+      ...res,
+      data: (res.data as any)?.course || res.data,
+    }));
   },
 
   async deleteCourse(id: string) {
     return apiClient(`/courses/${id}`, { method: 'DELETE' });
+  },
+
+  // Course Videos
+  async getCourseVideos(courseId: string) {
+    return apiClient<{ videos: CourseVideo[] }>(`/courses/${courseId}/videos`).then((res) => ({
+      ...res,
+      data: (res.data as any)?.videos || res.data,
+    }));
+  },
+
+  async addCourseVideo(courseId: string, data: Partial<CourseVideo>) {
+    return apiClient<{ video: CourseVideo }>(`/courses/${courseId}/videos`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }).then((res) => ({
+      ...res,
+      data: (res.data as any)?.video || res.data,
+    }));
+  },
+
+  async updateCourseVideo(courseId: string, videoId: string, data: Partial<CourseVideo>) {
+    return apiClient<{ video: CourseVideo }>(`/courses/${courseId}/videos/${videoId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }).then((res) => ({
+      ...res,
+      data: (res.data as any)?.video || res.data,
+    }));
+  },
+
+  async deleteCourseVideo(courseId: string, videoId: string) {
+    return apiClient(`/courses/${courseId}/videos/${videoId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async reorderCourseVideos(courseId: string, payload: { videoIds?: string[]; items?: { id: string; orderIndex: number }[] }) {
+    return apiClient<{ videos: CourseVideo[] }>(`/courses/${courseId}/videos/reorder`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }).then((res) => ({
+      ...res,
+      data: (res.data as any)?.videos || res.data,
+    }));
   },
 };
 
@@ -194,22 +266,5 @@ export const NotificationService = {
 
   async getUnreadCount() {
     return apiClient<{ unreadCount: number }>('/notifications/unread-count');
-  },
-};
-
-export const AdminService = {
-  async getDashboardStats() {
-    return apiClient<AdminStats>('/admin/dashboard/stats');
-  },
-
-  async getStudents(params?: { academicYear?: string; search?: string; page?: number; limit?: number }) {
-    return apiClient<User[]>('/admin/students', { params });
-  },
-
-  async toggleStudentStatus(id: string, isActive: boolean) {
-    return apiClient<User>(`/admin/students/${id}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ isActive }),
-    });
   },
 };

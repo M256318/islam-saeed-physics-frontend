@@ -15,12 +15,14 @@ import {
   RefreshCw,
   X,
   FileCode,
+  AlertTriangle,
 } from 'lucide-react';
 import { LoadingSpinner, EmptyState } from '@/components/UIState';
 
 export default function AuditLogsPage() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchAction, setSearchAction] = useState('');
@@ -29,6 +31,7 @@ export default function AuditLogsPage() {
 
   const fetchLogs = async (currentPage = 1) => {
     setIsLoading(true);
+    setError(null);
     try {
       const res = await AdminService.getAuditLogs({
         page: currentPage,
@@ -43,9 +46,13 @@ export default function AuditLogsPage() {
           setTotalPages(res.meta.pagination.totalPages);
           setPage(res.meta.pagination.page);
         }
+      } else {
+        setLogs([]);
+        setError(res.message || 'تعذر تحميل سجلات النشاط.');
       }
-    } catch (err) {
-      console.error('Failed to load audit logs:', err);
+    } catch (err: any) {
+      setLogs([]);
+      setError(err?.message || 'تعذر الاتصال بالخادم لتحميل سجلات النشاط.');
     } finally {
       setIsLoading(false);
     }
@@ -152,6 +159,18 @@ export default function AuditLogsPage() {
       {isLoading ? (
         <div className="py-20">
           <LoadingSpinner text="جاري جلب سجلات النشاط..." />
+        </div>
+      ) : error ? (
+        <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-8 text-center">
+          <AlertTriangle className="w-10 h-10 text-rose-400 mx-auto mb-3" />
+          <p className="text-sm font-bold text-white mb-4">{error}</p>
+          <button
+            onClick={() => fetchLogs(page)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl transition"
+          >
+            <RefreshCw className="w-4 h-4" />
+            إعادة المحاولة
+          </button>
         </div>
       ) : logs.length === 0 ? (
         <EmptyState

@@ -1,20 +1,34 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { LectureService } from '@/services/data.service';
 import { Lecture, AcademicYear } from '@/types';
 import { Play, Clock, BookOpen, Search, Filter } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { LoadingSpinner, CardSkeleton, EmptyState, ErrorState } from '@/components/UIState';
 
-export default function LecturesPage() {
+const GRADE_TABS: AcademicYear[] = ['GRADE_12', 'GRADE_11', 'GRADE_10'];
+
+function LecturesContent() {
+  const searchParams = useSearchParams();
+  const gradeParam = searchParams.get('grade');
+  const initialGrade = GRADE_TABS.includes(gradeParam as AcademicYear)
+    ? (gradeParam as AcademicYear)
+    : 'ALL';
+
   const [lectures, setLectures] = useState<Lecture[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedGrade, setSelectedGrade] = useState<string>('ALL');
+  const [selectedGrade, setSelectedGrade] = useState<string>(initialGrade);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Keep the tab in sync when ?grade= changes without a remount (e.g. /lectures?grade=… → …?grade=…)
+  useEffect(() => {
+    setSelectedGrade(initialGrade);
+  }, [initialGrade]);
 
   const fetchLectures = useCallback(async () => {
     setIsLoading(true);
@@ -219,5 +233,15 @@ export default function LecturesPage() {
 
       <Footer />
     </div>
+  );
+}
+
+// useSearchParams() reads the ?grade= links used by the landing page, so the content
+// must sit behind a Suspense boundary.
+export default function LecturesPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner text="جاري تحميل المحاضرات..." />}>
+      <LecturesContent />
+    </Suspense>
   );
 }

@@ -20,6 +20,8 @@ import {
   ClipboardList,
   Shield,
   Plus,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import Link from 'next/link';
 import { LoadingSpinner } from '@/components/UIState';
@@ -30,18 +32,36 @@ export default function AdminOverviewPage() {
   const [pendingQuestions, setPendingQuestions] = useState<Question[]>([]);
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
 
-  useEffect(() => {
-    Promise.all([
-      AdminService.getDashboardStats().catch(() => ({ success: false, data: null })),
+  const loadDashboard = async () => {
+    setIsLoading(true);
+    setStatsError(null);
+
+    const [statsRes, questionsRes, bookingsRes] = await Promise.all([
+      AdminService.getDashboardStats().catch((err: any) => ({
+        success: false as const,
+        data: null,
+        message: err?.message || 'تعذر تحميل إحصائيات المنصة.',
+      })),
       QuestionService.getAllQuestions({ status: 'PENDING' }).catch(() => ({ success: false, data: [] })),
       BookingService.getAllBookings().catch(() => ({ success: false, data: [] })),
-    ]).then(([statsRes, questionsRes, bookingsRes]) => {
-      if (statsRes.success && statsRes.data) setStats(statsRes.data);
-      if (questionsRes.success) setPendingQuestions(questionsRes.data || []);
-      if (bookingsRes.success) setRecentBookings(bookingsRes.data || []);
-      setIsLoading(false);
-    });
+    ]);
+
+    if (statsRes.success && statsRes.data) {
+      setStats(statsRes.data);
+    } else {
+      // Never render all-zero KPIs as if the platform were empty
+      setStats(null);
+      setStatsError(statsRes.message || 'تعذر تحميل إحصائيات المنصة.');
+    }
+    if (questionsRes.success) setPendingQuestions(questionsRes.data || []);
+    if (bookingsRes.success) setRecentBookings(bookingsRes.data || []);
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    loadDashboard();
   }, []);
 
   if (isLoading) {
@@ -109,6 +129,20 @@ export default function AdminOverviewPage() {
       )}
 
       {/* KPI Stats Cards */}
+      {statsError ? (
+        <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-8 text-center">
+          <AlertTriangle className="w-10 h-10 text-rose-400 mx-auto mb-3" />
+          <p className="text-sm font-bold text-white mb-1">تعذر تحميل مؤشرات الأداء (KPIs)</p>
+          <p className="text-xs text-slate-400 mb-4">{statsError}</p>
+          <button
+            onClick={loadDashboard}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl transition"
+          >
+            <RefreshCw className="w-4 h-4" />
+            إعادة المحاولة
+          </button>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Students */}
         {(isOwner || hasPermission('users:read')) && (
@@ -182,6 +216,7 @@ export default function AdminOverviewPage() {
           </div>
         )}
       </div>
+      )}
 
       {/* 2-Column Action Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

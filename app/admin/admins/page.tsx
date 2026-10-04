@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { AdminService, CreateAdminPayload, AdminDetail } from '@/services/admin.service';
@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 import { LoadingSpinner, EmptyState } from '@/components/UIState';
 
-export default function AdminManagementPage() {
+function AdminManagementContent() {
   const { isOwner } = useAuth();
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get('tab') === 'requests' ? 'requests' : 'admins';
@@ -41,6 +41,12 @@ export default function AdminManagementPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [requestFilter, setRequestFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('PENDING');
+
+  // The sidebar links to /admin/admins?tab=requests, which does not remount this page,
+  // so the visible tab must follow the query parameter.
+  useEffect(() => {
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
 
   // Modals state
   const [selectedAdminForPerms, setSelectedAdminForPerms] = useState<AdminMember | null>(null);
@@ -1186,5 +1192,14 @@ export default function AdminManagementPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// useSearchParams() reads ?tab=, so the content must sit behind a Suspense boundary.
+export default function AdminManagementPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner text="جاري تحميل بيانات المشرفين..." />}>
+      <AdminManagementContent />
+    </Suspense>
   );
 }

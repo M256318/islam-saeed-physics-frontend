@@ -52,8 +52,9 @@ export default function Navbar() {
 
   const navLinks = [
     { name: 'الرئيسية', href: '/' },
-    { name: 'عن المستر', href: '/about' },
     { name: 'المحاضرات', href: '/lectures' },
+    { name: 'الكورسات', href: '/courses' },
+    { name: 'عن المستر', href: '/about' },
     { name: 'تواصل معنا', href: '/contact' },
   ];
 
@@ -173,6 +174,14 @@ export default function Navbar() {
                           >
                             <LayoutDashboard className="w-4 h-4 text-primary-600" />
                             لوحة الطالب
+                          </Link>
+                          <Link
+                            href="/dashboard/courses"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-primary-50 hover:text-primary-700 font-medium"
+                          >
+                            <Layers className="w-4 h-4 text-primary-600" />
+                            كورساتي
                           </Link>
                           <Link
                             href="/dashboard/questions"
@@ -299,6 +308,13 @@ export default function Navbar() {
                       className="block px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg"
                     >
                       لوحة الطالب
+                    </Link>
+                    <Link
+                      href="/dashboard/courses"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg"
+                    >
+                      كورساتي
                     </Link>
                     <Link
                       href="/dashboard/questions"

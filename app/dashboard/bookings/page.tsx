@@ -27,9 +27,9 @@ export default function StudentBookingsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900">حجوزاتي ومجموعاتي</h1>
+          <h1 className="text-2xl font-black text-slate-900">طلبات الحجز</h1>
           <p className="text-xs text-slate-600 mt-1">
-            متابعة حالة اشتراكاتك في المجموعات والكورسات ومواعيد الحصص
+            متابعة حالة طلبات الحجز ومواعيد المجموعات
           </p>
         </div>
 
@@ -49,7 +49,7 @@ export default function StudentBookingsPage() {
       ) : bookings.length === 0 ? (
         <EmptyState
           title="لا توجد أي حجوزات حالية"
-          description="لم تقم بالاشتراك في أي مجموعة بعد. استعرض المجموعات المتاحة واحجز مقعدك."
+          description="لم ترسل طلب حجز بعد. استعرض الكورسات المتاحة لمعرفة التفاصيل."
           actionText="استعراض الكورسات"
           onAction={() => window.location.href = '/courses'}
         />
@@ -68,6 +68,8 @@ export default function StudentBookingsPage() {
                         ? 'bg-emerald-100 text-emerald-800'
                         : booking.status === 'CANCELLED'
                         ? 'bg-red-100 text-red-800'
+                        : booking.status === 'COMPLETED'
+                        ? 'bg-slate-200 text-slate-700'
                         : 'bg-amber-100 text-amber-800'
                     }`}
                   >
@@ -75,6 +77,8 @@ export default function StudentBookingsPage() {
                       ? 'تم تأكيد الحجز'
                       : booking.status === 'CANCELLED'
                       ? 'تم إلغاء الحجز'
+                      : booking.status === 'COMPLETED'
+                      ? 'مكتمل'
                       : 'قيد المراجعة والتأكيد'}
                   </span>
 
@@ -102,7 +106,7 @@ export default function StudentBookingsPage() {
                   )}
 
                   <div className="flex items-center gap-2 font-bold text-slate-900">
-                    <span>قيمة الاشتراك: {booking.course?.price || 0} ج.م</span>
+                    <span>سعر الكورس: {booking.course?.price || 0} ج.م</span>
                   </div>
                 </div>
 

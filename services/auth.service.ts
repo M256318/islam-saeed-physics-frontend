@@ -1,31 +1,12 @@
 import { apiClient, setClientToken } from '@/lib/api';
 import { User, ApiResponse } from '@/types';
 
-export interface RegisterPayload {
-  firstName: string;
-  middleName?: string;
-  lastName: string;
-  gender: 'MALE' | 'FEMALE';
-  academicYear: 'GRADE_10' | 'GRADE_11' | 'GRADE_12';
-  phoneNumber: string;
-  email?: string;
-  password: string;
-  confirmPassword: string;
-}
-
 export interface LoginPayload {
   phoneNumber: string;
   password: string;
 }
 
 export const AuthService = {
-  async register(data: RegisterPayload) {
-    return apiClient<{ user: User; message: string }>('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
   async verifyPhone(phoneNumber: string, otp: string) {
     return apiClient<{ message: string; user: { id: string; phoneNumber: string; isPhoneVerified: boolean } }>(
       '/auth/verify-phone',

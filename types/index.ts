@@ -80,17 +80,6 @@ export interface AuditLog {
   } | null;
 }
 
-export interface AdminStats {
-  studentsCount: number;
-  lecturesCount: number;
-  coursesCount: number;
-  bookingsCount: number;
-  pendingBookingsCount: number;
-  pendingQuestionsCount: number;
-  pendingAdminRequestsCount?: number;
-  adminsCount?: number;
-}
-
 export interface ApiResponse<T = any> {
   success: boolean;
   message: string;
@@ -138,6 +127,28 @@ export interface Lecture {
   } | null;
 }
 
+export interface CourseVideo {
+  id: string;
+  courseId: string;
+  title: string;
+  description?: string | null;
+  thumbnailUrl?: string | null;
+  videoSource: VideoSource;
+  youtubeUrl?: string | null;
+  youtubeVideoId?: string | null;
+  videoProvider?: string | null;
+  videoPlaybackId?: string | null;
+  videoUploadId?: string | null;
+  videoStatus: VideoStatus;
+  videoMetadata?: any;
+  durationMinutes: number;
+  orderIndex: number;
+  status: ContentStatus;
+  publishedAt?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface Course {
   id: string;
   title: string;
@@ -146,15 +157,21 @@ export interface Course {
   thumbnailUrl?: string | null;
   academicYear: AcademicYear;
   price: number;
+  currency?: string;
+  isFree?: boolean;
   schedule: string;
   capacity?: number | null;
-  activeBookingsCount: number;
+  activeBookingsCount?: number;
   availableSeats?: number | null;
-  isFull: boolean;
-  isAvailable: boolean;
+  isFull?: boolean;
+  isAvailable?: boolean;
+  videosCount?: number;
+  lecturesCount?: number;
   status: ContentStatus;
   createdAt: string;
+  updatedAt?: string;
   lectures?: Lecture[];
+  videos?: CourseVideo[];
 }
 
 export interface Booking {
@@ -234,6 +251,9 @@ export interface PermissionGroup {
   permissions: PermissionItem[];
 }
 
+// Must stay in sync with the backend catalog in
+// enterprise-backend/src/constants/permissions.ts — every permission the API enforces
+// must be grantable here.
 export const PERMISSION_GROUPS: PermissionGroup[] = [
   {
     name: 'إدارة المحتوى والدروس',
@@ -249,8 +269,21 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     permissions: [
       { code: 'users:read', label: 'استعراض الطلاب', description: 'عرض قائمة الطلاب المسجلين وبياناتهم' },
       { code: 'users:write', label: 'تعديل حسابات الطلاب', description: 'تفعيل أو تعطيل حسابات الطلاب' },
+      { code: 'users:delete', label: 'حذف حسابات الطلاب', description: 'حذف حساب طالب نهائيًا (يبقى القرار النهائي لمالك المنصة)' },
+      { code: 'bookings:create', label: 'إنشاء الحجوزات', description: 'تسجيل طلبات حجز الكورسات باسم الطلاب' },
       { code: 'bookings:manage', label: 'إدارة الحجوزات', description: 'قبول وتأكيد أو إلغاء طلبات حجز المجموعات' },
+      { code: 'questions:ask', label: 'طرح الأسئلة', description: 'إرسال أسئلة الفيزياء من لوحة الطالب' },
       { code: 'questions:answer', label: 'الرد على الأسئلة', description: 'الإجابة على استفسارات وأسئلة الفيزياء' },
+    ],
+  },
+  {
+    name: 'إدارة الإشراف والصلاحيات',
+    permissions: [
+      { code: 'admins:read', label: 'استعراض طلبات الإشراف', description: 'عرض قائمة طلبات الانضمام للإشراف وبيانات المرشحين' },
+      { code: 'admins:manage', label: 'إدارة المشرفين', description: 'إنشاء حسابات المشرفين وتعديل صلاحياتهم (التنفيذ محجوز لمالك المنصة)' },
+      { code: 'roles:read', label: 'استعراض الأدوار', description: 'عرض أدوار المنصة والصلاحيات المرتبطة بها' },
+      { code: 'roles:write', label: 'تعديل الأدوار', description: 'إضافة أو تعديل صلاحيات الأدوار' },
+      { code: 'notifications:read', label: 'مركز الإشعارات', description: 'استلام إشعارات الإدارة وقراءة مركز الإشعارات' },
     ],
   },
   {
@@ -258,6 +291,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     permissions: [
       { code: 'audit:read', label: 'سجلات النشاط (Audit Logs)', description: 'عرض سجلات الأمان والعمليات الإدارية' },
       { code: 'admin:access', label: 'دخول لوحة التحكم', description: 'صلاحية فتح لوحة الإدارة الأساسية' },
+      { code: 'settings:manage', label: 'إعدادات النظام', description: 'تعديل إعدادات المنصة العامة' },
     ],
   },
 ];
