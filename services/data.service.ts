@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api';
-import { Lecture, Course, CourseVideo, Booking, Question, UserNotification } from '@/types';
+import { Lecture, Course, CourseVideo, Booking, Question, UserNotification, LectureView } from '@/types';
 
 export const LectureService = {
   async getLectures(params?: { academicYear?: string; chapter?: string; status?: string; courseId?: string; page?: number; limit?: number }) {
@@ -67,6 +67,23 @@ export const LectureService = {
       thumbnailUrl?: string;
       token?: string;
     }>(`/lectures/${lectureId}/playback-token`);
+  },
+
+  /**
+   * Track lecture view progress
+   */
+  async trackView(lectureId: string, progress: number, watchDuration: number) {
+    return apiClient<LectureView>(`/lecture-views/lectures/${lectureId}/view`, {
+      method: 'POST',
+      body: JSON.stringify({ progress, watchDuration }),
+    });
+  },
+
+  /**
+   * Get current user's view progress for a lecture
+   */
+  async getMyView(lectureId: string) {
+    return apiClient<LectureView>(`/lecture-views/lectures/${lectureId}/view`);
   },
 
   async createLecture(data: Partial<Lecture>) {
@@ -196,8 +213,15 @@ export const CourseService = {
 };
 
 export const BookingService = {
-  async createBooking(data: { courseId: string; notes?: string }) {
+  async createBooking(data: { courseId: string; lectureId?: string; notes?: string }) {
     return apiClient<Booking>('/bookings', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async createManualBooking(data: { userId: string; courseId: string; lectureId?: string; status: 'CONFIRMED' | 'CANCELLED' }) {
+    return apiClient<Booking>('/bookings/manual', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -207,7 +231,7 @@ export const BookingService = {
     return apiClient<Booking[]>('/bookings/my');
   },
 
-  async getAllBookings(params?: { status?: string; courseId?: string }) {
+  async getAllBookings(params?: { status?: string; courseId?: string; limit?: number }) {
     return apiClient<Booking[]>('/bookings', { params });
   },
 

@@ -5,6 +5,8 @@ export type QuestionStatus = 'PENDING' | 'ANSWERED' | 'REJECTED';
 export type ContentStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 export type AdminRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
+export type LectureViewStatus = 'not_started' | 'started' | 'watched';
+
 export interface User {
   id: string;
   phoneNumber: string;
@@ -178,6 +180,7 @@ export interface Booking {
   id: string;
   userId: string;
   courseId: string;
+  lectureId?: string | null;
   status: BookingStatus;
   notes?: string | null;
   adminFeedback?: string | null;
@@ -195,6 +198,12 @@ export interface Booking {
     price: number;
     schedule: string;
     academicYear: AcademicYear;
+  };
+  lecture?: {
+    id: string;
+    title: string;
+    academicYear: AcademicYear;
+    thumbnailUrl?: string | null;
   };
   user?: User;
 }
@@ -239,6 +248,23 @@ export interface SystemNotification {
 }
 
 export type UserNotification = SystemNotification;
+
+export interface LectureView {
+  id: string;
+  userId: string;
+  lectureId: string;
+  progress: number; // 0-100
+  startedAt: string;
+  lastWatchedAt: string;
+  completedAt?: string | null;
+  watchDuration: number; // in seconds
+  lecture?: {
+    id: string;
+    title: string;
+    durationMinutes: number;
+    courseId: string;
+  };
+}
 
 export interface PermissionItem {
   code: string;
