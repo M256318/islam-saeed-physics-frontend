@@ -170,6 +170,11 @@ export default function VideoUploader({
         : `${apiBase}${uploadUrl.startsWith('/') ? '' : '/'}${uploadUrl}`;
 
       xhr.open('POST', targetUrl, true);
+      // Attach the admin auth token; the upload receiver requires a valid Bearer token.
+      const authToken = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      if (authToken) {
+        xhr.setRequestHeader('Authorization', `Bearer ${authToken}`);
+      }
       const formData = new FormData();
       formData.append('file', file);
       xhr.send(formData);
