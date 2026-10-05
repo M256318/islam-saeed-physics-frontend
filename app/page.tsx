@@ -81,7 +81,7 @@ export default function HomePage() {
                   href="/auth/register"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl text-base font-extrabold text-white bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-500/25 transition-all transform hover:-translate-y-0.5"
                 >
-                  <span>ابدأ رحلة التفوق مجانًا</span>
+                  <span>ابدأ رحلة التفوق الآن</span>
                   <ArrowLeft className="w-5 h-5" />
                 </Link>
                 <Link
@@ -469,7 +469,7 @@ export default function HomePage() {
               href="/auth/register"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-black text-primary-900 bg-amber-400 hover:bg-amber-300 shadow-xl transition-all transform hover:scale-105"
             >
-              <span>سجل حسابك مجانًا الآن</span>
+              <span>سجل حسابك وابدأ التعلم الآن</span>
               <ArrowLeft className="w-5 h-5" />
             </Link>
           </div>
