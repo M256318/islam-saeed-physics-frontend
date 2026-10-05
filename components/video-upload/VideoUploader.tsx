@@ -159,7 +159,12 @@ export default function VideoUploader({
       // Direct upload (Resolve URL whether absolute or relative)
       const apiBase = process.env.NEXT_PUBLIC_API_URL
         ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/v1\/?$/, '')
-        : 'http://localhost:5000';
+        : (() => {
+            if (process.env.NODE_ENV === 'production') {
+              throw new Error('NEXT_PUBLIC_API_URL must be set in production');
+            }
+            return 'http://localhost:5000';
+          })();
       const targetUrl = uploadUrl.startsWith('http')
         ? uploadUrl
         : `${apiBase}${uploadUrl.startsWith('/') ? '' : '/'}${uploadUrl}`;

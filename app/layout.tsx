@@ -2,12 +2,23 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/hooks/use-auth';
 
+function getAppUrl(): string {
+  const url = process.env.NEXT_PUBLIC_APP_URL;
+  if (!url) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('NEXT_PUBLIC_APP_URL must be set in production');
+    }
+    return 'http://localhost:3000';
+  }
+  return url;
+}
+
 export const metadata: Metadata = {
   title: 'منصة مستر إسلام سعيد للفيزياء | الثانوية العامة والأزهرية',
   description: 'المنصة التعليمية الرائدة لمادة الفيزياء للثانوية العامة والأزهرية مع مستر إسلام سعيد - خبرة أكثر من 10 سنوات وشرح مبسط وتدريبات شاملة.',
   keywords: ['فيزياء', 'ثانوية عامة', 'مستر إسلام سعيد', 'فيزياء 3 ثانوي', 'فيزياء أزهر', 'منصة فيزياء'],
   authors: [{ name: 'مستر إسلام سعيد' }],
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  metadataBase: new URL(getAppUrl()),
   icons: {
     icon: '/WEB.png',
     shortcut: '/WEB.png',
