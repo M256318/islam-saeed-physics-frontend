@@ -322,3 +322,111 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
   },
 ];
 
+// ==================== QUIZ SYSTEM TYPES ====================
+export type QuizStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+export type QuizAttemptStatus = 'IN_PROGRESS' | 'SUBMITTED' | 'GRADED';
+export type QuizQuestionType = 'MULTIPLE_CHOICE' | 'ESSAY';
+
+export interface QuizSettings {
+  id: string;
+  quizId: string;
+  showCorrectImmediately: boolean;
+  showExplanationImmediately: boolean;
+  showScoreAfterSubmission: boolean;
+  allowRetry: boolean;
+  randomizeQuestions: boolean;
+  randomizeOptions: boolean;
+  timeLimitMinutes?: number | null;
+  passPercentage: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface QuizOption {
+  id: string;
+  questionId: string;
+  text: string;
+  imageUrl?: string | null;
+  isCorrect: boolean;
+  explanation?: string | null;
+  orderIndex: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface QuizQuestion {
+  id: string;
+  quizId: string;
+  type: QuizQuestionType;
+  title: string;
+  imageUrl?: string | null;
+  explanation?: string | null;
+  orderIndex: number;
+  points: number;
+  createdAt: string;
+  updatedAt: string;
+  options: QuizOption[];
+}
+
+export interface Quiz {
+  id: string;
+  title: string;
+  description?: string | null;
+  academicYear: AcademicYear;
+  chapter?: string | null;
+  coverImageUrl?: string | null;
+  durationMinutes?: number | null;
+  maxAttempts: number;
+  status: QuizStatus;
+  courseId?: string | null;
+  lectureId?: string | null;
+  course?: { id: string; title: string; academicYear: string } | null;
+  lecture?: { id: string; title: string; academicYear: string } | null;
+  settings?: QuizSettings | null;
+  questions?: QuizQuestion[];
+  questionsCount?: number;
+  attemptsCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface QuizAttempt {
+  id: string;
+  quizId: string;
+  studentId: string;
+  startedAt: string;
+  submittedAt?: string | null;
+  score: number;
+  percentage: number;
+  status: QuizAttemptStatus;
+  timeSpent: number;
+  createdAt: string;
+  updatedAt: string;
+  quiz?: Quiz;
+  student?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    academicYear: AcademicYear;
+  };
+  answers?: QuizAnswer[];
+}
+
+export interface QuizAnswer {
+  id: string;
+  attemptId: string;
+  questionId: string;
+  selectedOptionId?: string | null;
+  essayAnswer?: string | null;
+  isCorrect?: boolean | null;
+  score: number;
+  feedback?: string | null;
+  gradedBy?: string | null;
+  gradedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  question?: QuizQuestion;
+  selectedOption?: QuizOption | null;
+}
+
