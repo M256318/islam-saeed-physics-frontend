@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api';
-import { Lecture, Course, CourseVideo, Booking, Question, UserNotification, LectureView } from '@/types';
+import { Lecture, Course, CourseVideo, Booking, Question, UserNotification, LectureView, Quiz, QuizAttempt, QuizQuestion, QuizSettings } from '@/types';
 
 export const LectureService = {
   async getLectures(params?: { academicYear?: string; chapter?: string; status?: string; courseId?: string; page?: number; limit?: number }) {
@@ -290,5 +290,162 @@ export const NotificationService = {
 
   async getUnreadCount() {
     return apiClient<{ unreadCount: number }>('/notifications/unread-count');
+  },
+};
+
+export const QuizService = {
+  // Quiz CRUD
+  async getQuizzes(params?: { academicYear?: string; status?: string; search?: string; courseId?: string; lectureId?: string; page?: number; limit?: number }) {
+    return apiClient<Quiz[]>('/quizzes', { params });
+  },
+
+  async getQuizById(id: string) {
+    return apiClient<{ quiz: Quiz }>(`/quizzes/${id}`).then((res) => ({
+      ...res,
+      data: (res.data as any)?.quiz || res.data,
+    }));
+  },
+
+  async createQuiz(data: Partial<Quiz>) {
+    return apiClient<{ quiz: Quiz }>('/quizzes', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }).then((res) => ({
+      ...res,
+      data: (res.data as any)?.quiz || res.data,
+    }));
+  },
+
+  async updateQuiz(id: string, data: Partial<Quiz>) {
+    return apiClient<{ quiz: Quiz }>(`/quizzes/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }).then((res) => ({
+      ...res,
+      data: (res.data as any)?.quiz || res.data,
+    }));
+  },
+
+  async updateStatus(id: string, status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED') {
+    return apiClient<{ quiz: Quiz }>(`/quizzes/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }).then((res) => ({
+      ...res,
+      data: (res.data as any)?.quiz || res.data,
+    }));
+  },
+
+  async updateSettings(id: string, settings: Partial<QuizSettings>) {
+    return apiClient<{ quiz: Quiz }>(`/quizzes/${id}/settings`, {
+      method: 'PATCH',
+      body: JSON.stringify(settings),
+    }).then((res) => ({
+      ...res,
+      data: (res.data as any)?.quiz || res.data,
+    }));
+  },
+
+  async duplicateQuiz(id: string) {
+    return apiClient<{ quiz: Quiz }>(`/quizzes/${id}/duplicate`, {
+      method: 'POST',
+    }).then((res) => ({
+      ...res,
+      data: (res.data as any)?.quiz || res.data,
+    }));
+  },
+
+  async deleteQuiz(id: string) {
+    return apiClient(`/quizzes/${id}`, { method: 'DELETE' });
+  },
+
+  async uploadCover(file: File) {
+    const formData = new FormData();
+    formData.append('cover', file);
+    return apiClient<{ url: string }>('/quizzes/covers', {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
+  // Quiz Questions
+  async addQuestion(quizId: string, data: Partial<QuizQuestion>) {
+    return apiClient<{ question: QuizQuestion }>(`/quizzes/${quizId}/questions`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }).then((res) => ({
+      ...res,
+      data: (res.data as any)?.question || res.data,
+    }));
+  },
+
+  async updateQuestion(quizId: string, questionId: string, data: Partial<QuizQuestion>) {
+    return apiClient<{ question: QuizQuestion }>(`/quizzes/${quizId}/questions/${questionId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }).then((res) => ({
+      ...res,
+      data: (res.data as any)?.question || res.data,
+    }));
+  },
+
+  async deleteQuestion(quizId: string, questionId: string) {
+    return apiClient(`/quizzes/${quizId}/questions/${questionId}`, { method: 'DELETE' });
+  },
+
+  async reorderQuestions(quizId: string, payload: { items: { id: string; orderIndex: number }[] }) {
+    return apiClient<{ questions: QuizQuestion[] }>(`/quizzes/${quizId}/questions/reorder`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }).then((res) => ({
+      ...res,
+      data: (res.data as any)?.questions || res.data,
+    }));
+  },
+
+  // Student Attempts
+  async startAttempt(quizId: string) {
+    return apiClient<{ attempt: QuizAttempt }>(`/quizzes/${quizId}/attempts`, {
+      method: 'POST',
+    }).then((res) => ({
+      ...res,
+      data: (res.data as any)?.attempt || res.data,
+    }));
+  },
+
+  async getMyAttempts(quizId: string) {
+    return apiClient<QuizAttempt[]>(`/quizzes/${quizId}/attempts/my`);
+  },
+
+  async getAttempt(attemptId: string) {
+    return apiClient<{ attempt: QuizAttempt }>(`/quizzes/attempts/${attemptId}`).then((res) => ({
+      ...res,
+      data: (res.data as any)?.attempt || res.data,
+    }));
+  },
+
+  async submitAnswer(attemptId: string, questionId: string, data: { selectedOptionId?: string; essayAnswer?: string }) {
+    return apiClient<{ answer: any }>(`/quizzes/attempts/${attemptId}/answers`, {
+      method: 'POST',
+      body: JSON.stringify({ questionId, ...data }),
+    });
+  },
+
+  async submitAttempt(attemptId: string) {
+    return apiClient<{ result: any }>(`/quizzes/attempts/${attemptId}/submit`, {
+      method: 'POST',
+    });
+  },
+
+  // Admin: Quiz Attempts & Grading
+  async getQuizAttempts(quizId: string, params?: { page?: number; limit?: number; status?: string; search?: string }) {
+    return apiClient<QuizAttempt[]>(`/quizzes/${quizId}/attempts`, { params });
+  },
+
+  async gradeEssay(attemptId: string, answerId: string, data: { score: number; isCorrect: boolean; feedback?: string }) {
+    return apiClient<{ answer: any }>(`/quizzes/attempts/${attemptId}/essay/${answerId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
   },
 };
