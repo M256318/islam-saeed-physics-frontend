@@ -21,6 +21,7 @@ import {
   X,
   Home,
   AlertTriangle,
+  FileQuestion,
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/UIState';
 
@@ -154,6 +155,12 @@ export default function AdminDashboardLayout({
       requiredPermission: 'courses:read',
     },
     {
+      name: 'إدارة الاختبارات (Quizzes)',
+      href: '/admin/quizzes',
+      icon: FileQuestion,
+      requiredPermission: 'courses:manage',
+    },
+    {
       name: 'إدارة حجوزات المجموعات',
       href: '/admin/bookings',
       icon: CalendarCheck,
@@ -191,6 +198,7 @@ export default function AdminDashboardLayout({
     if (pathname.startsWith('/admin/courses') && !hasPermission('courses:read')) return true;
     if (pathname.startsWith('/admin/bookings') && !hasPermission('bookings:manage')) return true;
     if (pathname.startsWith('/admin/questions') && !hasPermission('questions:answer')) return true;
+    if (pathname.startsWith('/admin/quizzes') && !hasPermission('courses:manage')) return true;
     return false;
   };
 
@@ -329,4 +337,3 @@ export default function AdminDashboardLayout({
     </div>
   );
 }
-
