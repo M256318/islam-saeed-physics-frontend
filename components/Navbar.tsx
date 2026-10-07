@@ -56,6 +56,7 @@ export default function Navbar() {
     { name: 'الكورسات', href: '/courses' },
     { name: 'عن المستر', href: '/about' },
     { name: 'تواصل معنا', href: '/contact' },
+    { name: 'الاختبارات', href: '/students/quizzes', show: !isAdmin },
   ];
 
   return (
@@ -94,6 +95,7 @@ export default function Navbar() {
           <nav className="hidden md:flex items-center gap-1 lg:gap-2">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
+              const showLink = link.show ?? true;
               return (
                 <Link
                   key={link.href}
@@ -102,9 +104,9 @@ export default function Navbar() {
                     isActive
                       ? 'text-primary-600 bg-primary-50/80 font-bold'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
-                  }`}
+                    }`}
                 >
-                  {link.name}
+                  {showLink ? link.name : null}
                 </Link>
               );
             })}
@@ -268,6 +270,7 @@ export default function Navbar() {
           <nav className="flex flex-col space-y-1">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
+              const showLink = link.show ?? true;
               return (
                 <Link
                   key={link.href}
@@ -277,7 +280,7 @@ export default function Navbar() {
                     isActive ? 'bg-primary-50 text-primary-600 font-bold' : 'text-slate-700'
                   }`}
                 >
-                  {link.name}
+                  {showLink ? link.name : null}
                 </Link>
               );
             })}
